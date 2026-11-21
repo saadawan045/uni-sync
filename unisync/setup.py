@@ -20,7 +20,8 @@ def _ask(q: str, default: str = "", secret: bool = False, required: bool = False
     shown = ("(saved)" if secret else default) if default else ""
     while True:
         prompt = f"{q}" + (f" [{shown}]" if shown else "") + ": "
-        v = (getpass.getpass(prompt) if secret else input(prompt)).strip()
+        hide = secret and sys.stdin.isatty()  # piped answers (scripted installs, tests) can't use getpass
+        v = (getpass.getpass(prompt) if hide else input(prompt)).strip()
         v = v or default
         if v or not required:
             return v

@@ -65,5 +65,9 @@ if (-not ($userPath -split ";" | Where-Object { $_ -eq $bin })) {
 }
 Refresh-Path
 
-Write-Host "`nInstalled. Starting setup..." -ForegroundColor Green
-& "$bin\uni-sync.cmd" setup
+if ($env:UNISYNC_SKIP_SETUP) {
+  Write-Host "`nInstalled. Run 'uni-sync setup' in a new window to finish." -ForegroundColor Green
+} else {
+  Write-Host "`nInstalled. Starting setup..." -ForegroundColor Green
+  & "$bin\uni-sync.cmd" setup
+}
