@@ -51,7 +51,7 @@ def _stop_running(cfg) -> None:
 
 
 def _start_now() -> None:
-    args = [_pythonw(), "-P", "-X", "utf8", "-m", "unisync", "run"]
+    args = [_pythonw(), "-X", "utf8", "-m", "unisync", "run"]
     if WINDOWS:
         flags = 0x00000008 | 0x08000000 | 0x00000200  # DETACHED_PROCESS | CREATE_NO_WINDOW | NEW_PROCESS_GROUP
         subprocess.Popen(args, cwd=ROOT, creationflags=flags, stdin=subprocess.DEVNULL,
@@ -68,7 +68,7 @@ def on(cfg) -> None:
         f.write_text(  # write_text turns \n into \r\n on Windows
             'Set sh = CreateObject("WScript.Shell")\n'
             f'sh.CurrentDirectory = "{ROOT}"\n'
-            f'sh.Run """{_pythonw()}"" -P -X utf8 -m unisync run", 0, False\n', encoding="utf-8")
+            f'sh.Run """{_pythonw()}"" -X utf8 -m unisync run", 0, False\n', encoding="utf-8")
         _stop_running(cfg)
         _start_now()
     elif MAC:
@@ -79,7 +79,7 @@ def on(cfg) -> None:
 <plist version="1.0"><dict>
   <key>Label</key><string>{LABEL}</string>
   <key>ProgramArguments</key><array>
-    <string>{sys.executable}</string><string>-P</string><string>-X</string><string>utf8</string><string>-m</string><string>unisync</string><string>run</string>
+    <string>{sys.executable}</string><string>-X</string><string>utf8</string><string>-m</string><string>unisync</string><string>run</string>
   </array>
   <key>WorkingDirectory</key><string>{ROOT}</string>
   <key>EnvironmentVariables</key><dict><key>PATH</key><string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string></dict>
@@ -97,7 +97,7 @@ Description=uni-sync (calendar sync, runs while you're logged in)
 
 [Service]
 WorkingDirectory={ROOT}
-ExecStart={sys.executable} -P -X utf8 -m unisync run
+ExecStart={sys.executable} -X utf8 -m unisync run
 Restart=on-failure
 RestartSec=60
 

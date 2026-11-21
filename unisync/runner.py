@@ -136,7 +136,7 @@ class Runner:
                 self.state["last"][name] = time.time()
                 self._save_state()
                 self.log.info(f"starting {name}")
-                self.running[name] = self._spawn([_python(), "-P", "-X", "utf8", "-m", "unisync", *args], name)
+                self.running[name] = self._spawn([_python(), "-X", "utf8", "-m", "unisync", *args], name)
 
     # ---------------------------------------------------------------- WhatsApp bridges
     def tick_bridges(self):

@@ -13,7 +13,7 @@ import urllib.request
 from . import paths
 from .runner import ROOT
 
-PY = [sys.executable, "-P", "-X", "utf8", "-m", "unisync"]
+PY = [sys.executable, "-X", "utf8", "-m", "unisync"]
 
 
 def _ask(q: str, default: str = "", secret: bool = False, required: bool = False) -> str:
