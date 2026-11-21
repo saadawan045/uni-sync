@@ -1,8 +1,10 @@
-# uni-sync configuration  →  ~/.config/uni-sync/config.toml   (chmod 600, it holds passwords)
+# uni-sync configuration. On a laptop, `uni-sync setup` writes this for you.
+# Location: Linux ~/.config/uni-sync/config.toml · macOS ~/Library/Application Support/uni-sync/config.toml
+#           Windows %APPDATA%\uni-sync\config.toml   (it holds passwords: keep it private)
 
 [general]
 timezone = "Asia/Karachi"
-data_dir = "~/.local/share/uni-sync"
+# data_dir = ""   # default: ~/.local/share/uni-sync (Linux), %LOCALAPPDATA%\uni-sync (Windows)
 
 [portal]
 login_url = "https://nit.effii.app/portal/"
@@ -21,8 +23,11 @@ semester_end  = ""          # e.g. "2027-01-20" — stops adding classes after t
 # submit   = "button[type=submit]"
 
 [google]
-service_account_file = "~/.config/uni-sync/service-account.json"
-calendar_id = ""            # Google Calendar → University calendar → Settings → "Calendar ID"
+# Laptop: auth = "oauth", then `uni-sync google-login` (sign in with Google; it creates the calendar).
+# Server: auth = "service_account" with a key file and a calendar shared with it (README → server setup).
+auth = "oauth"
+# service_account_file = "~/.config/uni-sync/service-account.json"
+calendar_id = ""            # filled in by google-login; for a service account: calendar Settings → "Calendar ID"
 
 [llm]
 ollama_url = "http://127.0.0.1:11434"

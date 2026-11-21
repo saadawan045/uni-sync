@@ -19,7 +19,8 @@ class DB:
             """
         )
         self.conn.commit()
-        (data_dir / "state.db").chmod(0o600)
+        from .paths import private
+        private(data_dir / "state.db")
 
     # seen-message tracking
     def seen(self, source: str, id_: str) -> bool:

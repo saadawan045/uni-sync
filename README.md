@@ -1,8 +1,37 @@
 # uni-sync
 
-A self-hosted tool that keeps a **"University" Google Calendar** up to date from a student's timetable, Canvas, WeBWorK, email and WhatsApp. A planner app on the phone (I use Structured) imports that calendar.
+Your whole university schedule in one **Google Calendar**, kept up to date for you: classes from the student portal, Canvas and WeBWorK deadlines, and the quizzes, cancellations and room changes that get announced in WhatsApp groups and emails. It runs **on your own laptop** (Windows, macOS or Linux), and your chats never leave it.
 
-Built for my own use as a CS student at NIT Lahore and running 24/7 on an old laptop turned Ubuntu server. The portal parser is written for NIT's student portal; other portals need changes in `unisync/portal.py`. Built with AI-assisted development (Claude Code); design, testing and running it on real data are my own.
+Built by a CS student at NIT Lahore. The timetable reader is written for NIT's portal (`nit.effii.app`); Canvas, WeBWorK, WhatsApp and email work for any university. Built with AI-assisted development (Claude Code); design, testing and running it on real data are my own.
+
+## Quick start (about 15 minutes)
+
+**Windows 10/11:** download this repository (green **Code** button → **Download ZIP**, then unzip it), open the folder, click the address bar, type `powershell` and press Enter. Then run:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\install.ps1
+```
+
+**macOS** (needs [Homebrew](https://brew.sh)): `./install-mac.sh` · **Linux laptop:** follow "Running it on a server" below, then `uni-sync setup`.
+
+The installer fetches Python, Node.js and [Ollama](https://ollama.com) if you don't have them, downloads the small local AI model (about 2 GB), then starts **`uni-sync setup`**, which walks you through:
+
+1. your portal login (it checks it works),
+2. **Sign in with Google** in your browser (uni-sync creates a calendar called *University* and can only see that one calendar),
+3. Canvas, optional (paste an access token),
+4. WhatsApp, optional (link with a code, like WhatsApp Web),
+5. email updates, optional (a 7:00 summary and change alerts).
+
+Then it turns on the background service, which starts when you log in. Add the *University* calendar to your phone's calendar app and you're done.
+
+| Command | |
+|---|---|
+| `uni-sync status` | is it running, and when each part last synced |
+| `uni-sync logs` | what it's been doing (`uni-sync logs portal-sync` for one part) |
+| `uni-sync setup` | change any setting (your answers are kept) |
+| `uni-sync autostart off` / `on` | stop or start the background service |
+
+**What to expect on a laptop:** it syncs while the laptop is on. When you open it after it's been asleep or off, missed syncs run straight away (a morning summary that's hours late is skipped). WhatsApp messages queue up and are read when it's back. The local AI takes 20–40 s per message on a typical laptop, in the background.
 
 ```
 NIT portal (timetable) ──┐
@@ -27,7 +56,11 @@ WhatsApp (all chats) ────┘    (local AI,              │
 
 ---
 
-## Setup (about 45 minutes)
+## Running it on a server (advanced)
+
+For an always-on Ubuntu machine. This uses systemd services instead of the laptop background service, and a Google service account instead of signing in.
+
+### Server setup (about 45 minutes)
 
 ### 1. Get the code on the server and install
 
@@ -233,8 +266,23 @@ unisync/llm.py      the local-model prompt (handles English / Urdu / Roman Urdu)
 unisync/gcal.py     Google Calendar
 unisync/mail.py     IMAP read (read-only) + SMTP send
 unisync/cli.py      commands
+unisync/setup.py    the setup wizard
+unisync/runner.py   laptop background scheduler (replaces systemd timers) + WhatsApp bridge supervisor
+unisync/autostart.py start at login (Windows Startup folder, macOS LaunchAgent, Linux user service)
+unisync/wa.py       wa-link / wa-unlink / wa-list
 wa-bridge/index.mjs WhatsApp bridge (receive-only)
 systemd/            background services and timers
 ```
 
-Config: `~/.config/uni-sync/config.toml` · Data: `~/.local/share/uni-sync/`
+- Config (`config.toml`): Linux `~/.config/uni-sync/` · macOS `~/Library/Application Support/uni-sync/` · Windows `%APPDATA%\uni-sync\`
+- Data and logs: Linux `~/.local/share/uni-sync/` · macOS `…/uni-sync/data/` · Windows `%LOCALAPPDATA%\uni-sync\`
+
+## For the maintainer: Google sign-in client
+
+`uni-sync setup` signs students in with Google using an OAuth client bundled as `unisync/google-client.json`. To create it:
+
+1. At console.cloud.google.com, create a project, then **APIs & Services → Library → Google Calendar API → Enable**.
+2. **OAuth consent screen**: User type *External*, app name *uni-sync*, your email as support and developer contact. Add the scope `.../auth/calendar.app.created` ("Make secondary Google calendars, and see, create, change and delete events on them"). Set **Publishing status → In production** (in *Testing*, sign-ins expire every 7 days).
+3. **Credentials → Create credentials → OAuth client ID → Desktop app**, then download the JSON and save it as `unisync/google-client.json`.
+
+For a desktop app Google treats this file as public (it can't be kept secret on users' machines), so it's fine to commit. Until the app passes Google's verification, students see an "unverified app" screen (Advanced → Go to uni-sync) and there's a cap of 100 users.

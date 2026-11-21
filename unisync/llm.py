@@ -156,7 +156,10 @@ def extract(cfg, messages: list[dict], context: str, now: datetime | None = None
 
 
 def check(cfg) -> str:
-    r = requests.get(f"{cfg.ollama_url}/api/tags", timeout=10)
+    try:
+        r = requests.get(f"{cfg.ollama_url}/api/tags", timeout=10)
+    except requests.ConnectionError:
+        raise RuntimeError("Ollama isn't running. Open the Ollama app (or install it from https://ollama.com).") from None
     r.raise_for_status()
     names = [m["name"] for m in r.json().get("models", [])]
     if not any(n.split(":")[0] == cfg.model.split(":")[0] and (":" not in cfg.model or n == cfg.model) for n in names):

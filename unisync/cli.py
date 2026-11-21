@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import argparse
-import fcntl
 import json
 import re
 import os
@@ -15,19 +14,35 @@ from pathlib import Path
 
 from . import config as config_mod
 from .db import DB
+from .paths import private
 
 TAG = "[Uni Sync]"
 
 
 # ---------------------------------------------------------------- utilities
-def _lock(cfg):
-    f = open(cfg.data_dir / "run.lock", "w")
-    for _ in range(600):  # wait up to 10 min for another job (the model can be slow)
+def _try_lock(f) -> bool:
+    if os.name == "nt":
+        import msvcrt
         try:
-            fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            f.seek(0)
+            msvcrt.locking(f.fileno(), msvcrt.LK_NBLCK, 1)
+            return True
+        except OSError:
+            return False
+    import fcntl
+    try:
+        fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        return True
+    except BlockingIOError:
+        return False
+
+
+def _lock(cfg):
+    f = open(cfg.data_dir / "run.lock", "a+")
+    for _ in range(600):  # wait up to 10 min for another job (the model can be slow)
+        if _try_lock(f):
             return f
-        except BlockingIOError:
-            time.sleep(1)
+        time.sleep(1)
     sys.exit("Another uni-sync job is still running.")
 
 
@@ -75,14 +90,15 @@ def cmd_doctor(cfg, db, a):
         ("Local AI (Ollama)", lambda: llm.check(cfg)),
         ("Email inbox (IMAP)", lambda: mail.check(cfg) if cfg.imap_host else "not configured"),
         ("WhatsApp accounts", lambda: ", ".join(_wa_accounts(cfg)) if _wa_accounts(cfg)
-            else (_ for _ in ()).throw(RuntimeError("none linked — run: uni-sync wa-link <name> <phone>"))),
-        ("Notifications", lambda: f"to {cfg.notify_to} via {cfg.smtp_host}" if cfg.notify_to and cfg.smtp_host
-            else (_ for _ in ()).throw(RuntimeError("notify_to (or smtp_host) is empty in [mail]"))),
+            else "none linked (optional: uni-sync wa-link personal)"),
+        ("Email updates", lambda: f"to {cfg.notify_to} via {cfg.smtp_host}" if cfg.notify_to and cfg.smtp_host
+            else "off (optional: uni-sync setup)"),
         ("Canvas", lambda: __import__("unisync.canvas", fromlist=["check"]).check(cfg)
             if (cfg.canvas_token or cfg.canvas_ical_url) else "not set up (optional)"),
         ("WeBWorK", lambda: __import__("unisync.webwork", fromlist=["check"]).check(cfg)
             if cfg.webwork_courses else "not set up (optional)"),
-        ("Portal login details", lambda: "set" if cfg.portal_username and cfg.portal_password else "missing"),
+        ("Portal login details", lambda: "set" if cfg.portal_username and cfg.portal_password
+            else (_ for _ in ()).throw(RuntimeError("missing — run: uni-sync setup"))),
     ]
     bad = 0
     for name, fn in checks:
@@ -220,8 +236,8 @@ def _save_context(cfg, hist: dict) -> None:
     hist = {k: [m for m in v if m.get("ts", 0) >= cutoff] for k, v in hist.items()}
     hist = {k: v for k, v in hist.items() if v}
     tmp = f.with_suffix(".tmp")
-    tmp.write_text(json.dumps(hist, ensure_ascii=False))
-    tmp.chmod(0o600)
+    tmp.write_text(json.dumps(hist, ensure_ascii=False), encoding="utf-8")
+    private(tmp)
     tmp.replace(f)
 
 
@@ -433,9 +449,83 @@ def cmd_pause(cfg, db, a):
         print(f"Paused {who}. Disconnects within a minute (sessions kept, not logged out).")
 
 
+def cmd_run(cfg, db, a):
+    from . import runner
+    runner.run(cfg)
+
+
+def cmd_status(cfg, db, a):
+    from . import autostart, runner
+    print(runner.status(cfg))
+    print("\nStarts at login: " + ("yes" if autostart.enabled() else "no  (uni-sync autostart on)"))
+
+
+def cmd_logs(cfg, db, a):
+    d = cfg.data_dir / "logs"
+    f = d / f"{a.job}.log" if a.job else d / "uni-sync.log"
+    if not f.exists():
+        print(f"No log yet ({f}). Logs: " + ", ".join(sorted(p.stem for p in d.glob("*.log"))) if d.exists() else "No logs yet.")
+        return
+    print("\n".join(f.read_text(encoding="utf-8", errors="replace").splitlines()[-a.lines:]))
+
+
+def cmd_autostart(cfg, db, a):
+    from . import autostart
+    if a.action in ("off", "restart"):
+        autostart.off(cfg)
+    if a.action in ("on", "restart"):
+        autostart.on(cfg)
+
+
+def cmd_google_login(cfg, db, a):
+    from .gcal import google_login
+    cal_id = google_login(cfg)
+    if cal_id != cfg.calendar_id:
+        f = config_mod.CONFIG_PATH
+        txt = f.read_text(encoding="utf-8")
+        new = re.sub(r'(?m)^calendar_id\s*=.*$', f"calendar_id = {json.dumps(cal_id)}", txt)
+        f.write_text(new if new != txt else txt.replace("[google]", f"[google]\ncalendar_id = {json.dumps(cal_id)}", 1), encoding="utf-8")
+    print("✔ Signed in to Google. Calendar: University")
+
+
+def cmd_wa_link(cfg, db, a):
+    from . import wa
+    wa.link(cfg, a.name, a.phone or "")
+
+
+def cmd_wa_unlink(cfg, db, a):
+    from . import wa
+    wa.unlink(cfg, a.name)
+
+
+def cmd_wa_list(cfg, db, a):
+    from . import wa
+    wa.listing(cfg)
+
+
+def cmd_wa_update(cfg, db, a):
+    from . import wa
+    wa.update()
+
+
+NO_LOCK = {"pause", "doctor", "run", "status", "logs", "autostart", "google-login",
+           "wa-link", "wa-unlink", "wa-list", "wa-update"}
+
+
 def main():
-    p = argparse.ArgumentParser(prog="uni-sync")
+    p = argparse.ArgumentParser(prog="uni-sync", description="Keeps a 'University' Google Calendar up to date. "
+                                "New here? Run: uni-sync setup")
     sub = p.add_subparsers(dest="cmd", required=True)
+    sub.add_parser("setup", help="step-by-step setup (run again to change settings)")
+    sub.add_parser("run", help="run the background scheduler in this window (autostart does this for you)")
+    sub.add_parser("status", help="is it running, and when did each job last run")
+    s = sub.add_parser("logs", help="recent log lines"); s.add_argument("job", nargs="?", help="e.g. portal-sync, wa-personal"); s.add_argument("-n", "--lines", type=int, default=60)
+    s = sub.add_parser("autostart", help="start automatically at login: on / off / restart"); s.add_argument("action", choices=["on", "off", "restart"])
+    sub.add_parser("google-login", help="sign in to Google again")
+    s = sub.add_parser("wa-link", help="link a WhatsApp number"); s.add_argument("name"); s.add_argument("phone", nargs="?")
+    s = sub.add_parser("wa-unlink", help="remove a linked WhatsApp number"); s.add_argument("name")
+    sub.add_parser("wa-list", help="linked WhatsApp numbers")
+    sub.add_parser("wa-update", help="update the WhatsApp library (about monthly)")
     s = sub.add_parser("doctor", help="check every connection"); s.add_argument("--send-test", action="store_true")
     sub.add_parser("portal-discover", help="log in and save screenshots/HTML of the portal")
     s = sub.add_parser("portal-sync", help="timetable → Google Calendar"); s.add_argument("--dry-run", action="store_true")
@@ -448,9 +538,13 @@ def main():
     s = sub.add_parser("pause", help="pause WhatsApp bridges (--off to resume)"); s.add_argument("account", nargs="?"); s.add_argument("--off", action="store_true")
     a = p.parse_args()
 
+    if a.cmd == "setup":
+        from . import setup
+        setup.main()
+        return
     cfg = config_mod.load()
     os.umask(0o077)
-    lock = _lock(cfg) if a.cmd not in ("pause", "doctor") else None
+    lock = _lock(cfg) if a.cmd not in NO_LOCK else None
     db = DB(cfg.data_dir)
     cfg.enrolled = db.get("enrolled_courses", [])
     globals()["cmd_" + a.cmd.replace("-", "_")](cfg, db, a)

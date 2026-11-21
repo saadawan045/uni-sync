@@ -1,3 +1,4 @@
+import os
 from datetime import date, datetime, time, timedelta, timezone
 from types import SimpleNamespace
 from zoneinfo import ZoneInfo
@@ -441,7 +442,8 @@ def test_rso_conversation(tmp_path, monkeypatch):
     last = seen[-1]
     assert [c for _, c in last] == [True, True, True, False]          # earlier runs come along as context
     assert "@66700875706567" not in J.dumps(seen) and "@someone" in J.dumps(seen)
-    assert (d / "wa-context.json").stat().st_mode & 0o777 == 0o600
+    if os.name != "nt":  # Windows has no POSIX modes; AppData is per-user
+        assert (d / "wa-context.json").stat().st_mode & 0o777 == 0o600
 
 
 def test_go_to_uni_conversation(tmp_path, monkeypatch):

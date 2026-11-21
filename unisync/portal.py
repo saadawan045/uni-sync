@@ -213,9 +213,9 @@ def _parse_grid(g) -> list[Slot]:
 
 
 def _clean_html(s: str) -> list[str]:
-    s = re.sub(r"<\s*br\s*/?>|</p>|</div>|\n", "\n", s or "", flags=re.I)
+    s = re.sub(r"<\s*br\s*/?>|</p>|</div>|\r\n|\r|\n", "\n", s or "", flags=re.I)
     s = BeautifulSoup(s, "lxml").get_text()
-    return [l.strip(" -|·\t") for l in s.split("\n") if l.strip(" -|·\t")]
+    return [l.strip(" -|·\t\r") for l in s.split("\n") if l.strip(" -|·\t\r")]
 
 
 def _hhmm(v) -> time | None:

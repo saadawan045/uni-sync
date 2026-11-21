@@ -30,6 +30,7 @@ import pino from 'pino'
 import qrcode from 'qrcode-terminal'
 import fs from 'node:fs'
 import path from 'node:path'
+import os from 'node:os'
 
 // ---------- config ----------
 const args = process.argv.slice(2)
@@ -37,7 +38,7 @@ const argVal = (flag) => { const i = args.indexOf(flag); return i >= 0 ? (args[i
 
 // One bridge process per WhatsApp number, e.g. --account personal / --account business
 const ACCOUNT = (argVal('--account') || process.env.UNISYNC_WA_ACCOUNT || 'main').replace(/[^a-z0-9_-]/gi, '').toLowerCase() || 'main'
-const DATA_DIR = process.env.UNISYNC_DATA || path.join(process.env.HOME, '.local/share/uni-sync')
+const DATA_DIR = process.env.UNISYNC_DATA || path.join(os.homedir(), '.local/share/uni-sync')
 const AUTH_DIR = path.join(DATA_DIR, `wa-auth-${ACCOUNT}`)
 const SPOOL = path.join(DATA_DIR, `wa-spool-${ACCOUNT}.jsonl`)
 const ALERTS = path.join(DATA_DIR, 'alerts.jsonl')
@@ -158,7 +159,8 @@ async function start() {
     auth: state,
     version,
     logger: log,
-    browser: Browsers.ubuntu('Chrome'),   // shows as "Chrome (Ubuntu)" in Linked devices
+    // shows as e.g. "Chrome (Windows)" in Linked devices, matching the laptop it runs on
+    browser: process.platform === 'win32' ? Browsers.windows('Chrome') : process.platform === 'darwin' ? Browsers.macOS('Chrome') : Browsers.ubuntu('Chrome'),
     markOnlineOnConnect: false,           // stay "offline" — no presence spam, phone keeps notifying
     syncFullHistory: false,
     // Allow WhatsApp's normal small startup sync (contacts, ID mappings, recent chats) — blocking it

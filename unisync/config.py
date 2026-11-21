@@ -1,4 +1,4 @@
-"""Loads ~/.config/uni-sync/config.toml."""
+"""Loads config.toml (location per OS: see paths.py; `uni-sync setup` writes it)."""
 from __future__ import annotations
 
 import os
@@ -9,7 +9,9 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-CONFIG_PATH = Path(os.environ.get("UNISYNC_CONFIG", Path.home() / ".config/uni-sync/config.toml"))
+from . import paths
+
+CONFIG_PATH = paths.config_file()
 
 
 @dataclass
@@ -28,6 +30,8 @@ class Config:
     semester_end: str = ""
 
     # google
+    google_auth: str = "oauth"      # "oauth" (sign in with Google) or "service_account"
+    oauth_client_file: str = ""
     service_account_file: str = ""
     calendar_id: str = ""
 
@@ -64,24 +68,23 @@ class Config:
     ignore_chats: list = field(default_factory=list)
     context_hours: float = 12
     ai_filter: str = "loose"
-    my_names: list = field(default_factory=lambda: ["saad"])  # a group message using one of these is addressed to you
+    my_names: list = field(default_factory=list)  # a group message using one of these is addressed to you
     enrolled: list = field(default_factory=list)  # filled at startup from the last Canvas sync
     verify: bool = False         # second AI check on each new event (drops other people's plans, jokes)
 
 
 def load() -> Config:
     if not CONFIG_PATH.exists():
-        sys.exit(f"Config not found: {CONFIG_PATH}\nCopy config.example.toml there and fill it in.")
-    mode = CONFIG_PATH.stat().st_mode
-    if mode & (stat.S_IRWXG | stat.S_IRWXO):
+        sys.exit(f"Not set up yet (no {CONFIG_PATH}).\nRun:  uni-sync setup")
+    if not paths.WINDOWS and CONFIG_PATH.stat().st_mode & (stat.S_IRWXG | stat.S_IRWXO):
         os.chmod(CONFIG_PATH, 0o600)  # it holds passwords
 
     try:
-        raw = tomllib.loads(CONFIG_PATH.read_text())
+        raw = tomllib.loads(CONFIG_PATH.read_text(encoding="utf-8"))
     except tomllib.TOMLDecodeError as e:
         sys.exit(f"Error in {CONFIG_PATH}: {e}\n"
                  "Common causes: a value without quotes, or text after a value that isn't a # comment.\n"
-                 f"Edit it with: nano {CONFIG_PATH}")
+                 "Fix it in a text editor, or run `uni-sync setup` again.")
     g = raw.get("general", {})
     p = raw.get("portal", {})
     goo = raw.get("google", {})
@@ -90,8 +93,9 @@ def load() -> Config:
     wa = raw.get("whatsapp", {})
     cv = raw.get("canvas", {})
 
-    data_dir = Path(os.path.expanduser(g.get("data_dir", "~/.local/share/uni-sync")))
+    data_dir = Path(os.path.expanduser(g["data_dir"])) if g.get("data_dir") else paths.default_data_dir()
     data_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
+    cdir = paths.config_dir()
 
     return Config(
         raw=raw,
@@ -104,7 +108,9 @@ def load() -> Config:
         portal_selectors=p.get("selectors", {}),
         weeks_ahead=int(p.get("weeks_ahead", 3)),
         semester_end=p.get("semester_end", ""),
-        service_account_file=os.path.expanduser(goo.get("service_account_file", "~/.config/uni-sync/service-account.json")),
+        google_auth=goo.get("auth", "service_account" if goo.get("service_account_file") else "oauth"),
+        oauth_client_file=os.path.expanduser(goo.get("oauth_client_file", "")),
+        service_account_file=os.path.expanduser(goo.get("service_account_file", str(cdir / "service-account.json"))),
         calendar_id=goo.get("calendar_id", ""),
         ollama_url=llm.get("ollama_url", "http://127.0.0.1:11434"),
         model=llm.get("model", "qwen2.5:3b"),
@@ -131,7 +137,7 @@ def load() -> Config:
         detect_personal=bool(raw.get("llm", {}).get("detect_personal", True)),
         ignore_chats=[s.lower() for s in wa.get("ignore_chats", [])],
         context_hours=float(wa.get("context_hours", 12)),
-        my_names=[s.lower() for s in wa.get("my_names", ["saad"])],
+        my_names=[s.lower() for s in wa.get("my_names", []) if s and s.lower() != "yourname"],
         ai_filter=(llm.get("filter", "loose") if llm.get("filter", "loose") in ("strict", "loose", "off") else "loose"),
         verify=bool(llm.get("verify", False)),
     )

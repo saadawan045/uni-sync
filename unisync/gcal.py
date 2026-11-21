@@ -1,20 +1,86 @@
-"""Google Calendar access via a service account that you share ONE calendar with.
+"""Google Calendar access.
 
-The service account can only see the calendar you explicitly share with it —
-not the rest of your Google account.
+Two ways in, both limited to ONE calendar:
+- "oauth" (default, for laptops): you sign in with Google once (`uni-sync google-login`). uni-sync
+  asks only for permission to manage calendars it creates itself, so it creates a "University"
+  calendar and can't see any of your other calendars or events.
+- "service_account" (servers): a robot account you share one calendar with.
 """
 from __future__ import annotations
 
 import hashlib
+import json
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
 from difflib import SequenceMatcher
+from pathlib import Path
 
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
-SCOPES = ["https://www.googleapis.com/auth/calendar.events"]
+SCOPES = ["https://www.googleapis.com/auth/calendar.events"]          # service account
+OAUTH_SCOPES = ["https://www.googleapis.com/auth/calendar.app.created"]  # only calendars uni-sync created
+BUNDLED_CLIENT = Path(__file__).with_name("google-client.json")
+
+
+def _token_file(cfg) -> Path:
+    return cfg.data_dir / "google-token.json"
+
+
+def _client_file(cfg) -> Path | None:
+    for f in (cfg.oauth_client_file, BUNDLED_CLIENT):
+        if f and Path(f).exists():
+            return Path(f)
+    return None
+
+
+def credentials(cfg):
+    if cfg.google_auth == "service_account":
+        return service_account.Credentials.from_service_account_file(cfg.service_account_file, scopes=SCOPES)
+    from google.auth.transport.requests import Request
+    from google.oauth2.credentials import Credentials
+    tf = _token_file(cfg)
+    if not tf.exists():
+        raise RuntimeError("not signed in to Google yet — run: uni-sync google-login")
+    creds = Credentials.from_authorized_user_file(str(tf), OAUTH_SCOPES)
+    if not creds.valid:
+        if creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+            tf.write_text(creds.to_json(), encoding="utf-8")
+        else:
+            raise RuntimeError("Google sign-in expired — run: uni-sync google-login")
+    return creds
+
+
+def google_login(cfg, calendar_name: str = "University") -> str:
+    """Browser sign-in; creates the calendar if needed. Returns its calendar id."""
+    from google_auth_oauthlib.flow import InstalledAppFlow
+    from .paths import private
+    cf = _client_file(cfg)
+    if not cf:
+        raise SystemExit(
+            "No Google sign-in client found. Put the OAuth client file (Desktop app) at\n"
+            f"  {BUNDLED_CLIENT}\nor set oauth_client_file under [google] in config.toml.\n"
+            "See README → 'For the maintainer: Google sign-in client'.")
+    flow = InstalledAppFlow.from_client_secrets_file(str(cf), OAUTH_SCOPES)
+    print("Opening your browser to sign in with Google…")
+    creds = flow.run_local_server(port=0, open_browser=True,
+                                  success_message="uni-sync is connected. You can close this tab.")
+    tf = _token_file(cfg)
+    tf.write_text(creds.to_json(), encoding="utf-8")
+    private(tf)
+    svc = build("calendar", "v3", credentials=creds, cache_discovery=False)
+    cal_id = cfg.calendar_id
+    if cal_id:
+        try:
+            svc.events().list(calendarId=cal_id, maxResults=1).execute()
+            return cal_id
+        except HttpError:
+            pass  # a calendar from an earlier sign-in that this login can't reach: make a new one
+    cal = svc.calendars().insert(body={"summary": calendar_name, "timeZone": str(cfg.tz),
+                                       "description": "Kept up to date by uni-sync"}).execute()
+    return cal["id"]
 
 
 def event_id(*parts) -> str:
@@ -41,8 +107,7 @@ class Ev:
 
 class Calendar:
     def __init__(self, cfg):
-        creds = service_account.Credentials.from_service_account_file(cfg.service_account_file, scopes=SCOPES)
-        self.svc = build("calendar", "v3", credentials=creds, cache_discovery=False)
+        self.svc = build("calendar", "v3", credentials=credentials(cfg), cache_discovery=False)
         self.cal = cfg.calendar_id
         self.tz = cfg.tz
 

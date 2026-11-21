@@ -82,7 +82,7 @@ cat <<EOF
 
 ✅ Installed. Next:
   1. nano $CONF/config.toml           (portal login, calendar id, Gmail)
-  2. put your Google key at $CONF/service-account.json
+  2. set auth = "service_account" under [google] and put your Google key at $CONF/service-account.json
   3. uni-sync doctor --send-test
   4. uni-sync portal-sync --dry-run
   5. uni-sync wa-link personal 971XXXXXXXXX   (and: uni-sync wa-link business 92XXXXXXXXXX)

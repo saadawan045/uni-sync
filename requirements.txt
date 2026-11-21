@@ -3,6 +3,7 @@ lxml>=5
 requests>=2.31
 google-api-python-client>=2.150
 google-auth>=2.35
+google-auth-oauthlib>=1.2
 playwright>=1.50
 tzdata
 icalendar>=6
