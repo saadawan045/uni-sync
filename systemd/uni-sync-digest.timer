@@ -1,0 +1,9 @@
+[Unit]
+Description=uni-sync: morning digest (schedule)
+
+[Timer]
+OnCalendar=*-*-* 07:00:00 Asia/Karachi
+Persistent=false
+
+[Install]
+WantedBy=timers.target

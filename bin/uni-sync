@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+# uni-sync — wrapper installed to /usr/local/bin/uni-sync
+set -euo pipefail
+DIR="$(dirname "$(readlink -f "$0")")/.."
+DIR="$(readlink -f "$DIR")"
+DATA="${UNISYNC_DATA:-$HOME/.local/share/uni-sync}"
+
+valid_name() { [[ "$1" =~ ^[a-z0-9_-]+$ ]] || { echo "Account name must be lowercase letters/numbers, e.g. personal or business"; exit 1; }; }
+
+case "${1:-}" in
+  wa-link)
+    # Usage: uni-sync wa-link <name> [phone with country code]
+    #   uni-sync wa-link personal 971501234567
+    #   uni-sync wa-link business 923001234567
+    NAME="${2:-}"; PHONE="${3:-}"
+    [[ -z "$NAME" ]] && { echo "Usage: uni-sync wa-link <name> <phone>   e.g. uni-sync wa-link personal 971501234567"; exit 1; }
+    valid_name "$NAME"
+    sudo systemctl stop "uni-sync-wa@$NAME" 2>/dev/null || true
+    if [[ -f "$DATA/wa-auth-$NAME/creds.json" ]] && grep -q '"account"' "$DATA/wa-auth-$NAME/creds.json"; then
+      echo "'$NAME' is already linked. To re-link: uni-sync wa-unlink $NAME first."
+      sudo systemctl start "uni-sync-wa@$NAME"; exit 0
+    fi
+    rm -rf "$DATA/wa-auth-$NAME"   # leftover from an unfinished attempt
+    echo "Linking WhatsApp account '$NAME'. Leave this running until it says 'Connected', then press Ctrl+C."
+    trap ':' INT   # Ctrl+C stops only the pairing step, not this script
+    if [[ -n "$PHONE" ]]; then
+      (cd "$DIR/wa-bridge" && UNISYNC_DATA="$DATA" node index.mjs --account "$NAME" --pair "$PHONE") || true
+    else
+      (cd "$DIR/wa-bridge" && UNISYNC_DATA="$DATA" node index.mjs --account "$NAME") || true
+    fi
+    trap - INT
+    # linked = the session file exists and contains the device identity WhatsApp issues on a completed pairing ("account")
+    if [[ -f "$DATA/wa-auth-$NAME/creds.json" ]] && grep -q '"account"' "$DATA/wa-auth-$NAME/creds.json"; then
+      sudo systemctl enable --now "uni-sync-wa@$NAME" && echo "Bridge '$NAME' is running in the background."
+    else
+      sudo systemctl disable "uni-sync-wa@$NAME" 2>/dev/null || true
+      echo "Not linked — nothing started. Fix: uni-sync wa-unlink $NAME, then run wa-link again."
+    fi
+    ;;
+  wa-unlink)
+    NAME="${2:-}"; [[ -z "$NAME" ]] && { echo "Usage: uni-sync wa-unlink <name>"; exit 1; }
+    valid_name "$NAME"
+    sudo systemctl disable --now "uni-sync-wa@$NAME" 2>/dev/null || true
+    rm -rf "$DATA/wa-auth-$NAME" "$DATA/wa-groups-$NAME.json"
+    echo "Session '$NAME' deleted. Also remove 'Chrome (Ubuntu)' from WhatsApp → Linked devices on that phone."
+    ;;
+  wa-list)
+    for d in "$DATA"/wa-auth-*; do
+      n="${d##*/wa-auth-}"
+      grep -qs '"account"' "$d/creds.json" || { printf '%-12s %s\n' "$n" "not linked (unfinished — run: uni-sync wa-unlink $n)"; continue; }
+      printf '%-12s %s\n' "$n" "$(systemctl is-active "uni-sync-wa@$n")"
+    done
+    ;;
+  wa-update)
+    # Keep the WhatsApp library current — outdated clients are more likely to be flagged.
+    cd "$DIR/wa-bridge"
+    npm install --save-exact baileys@latest
+    sudo systemctl restart 'uni-sync-wa@*'
+    echo "Updated to baileys $(node -p "require('./node_modules/baileys/package.json').version")"
+    ;;
+  logs)
+    journalctl -u 'uni-sync-*' -n "${2:-100}" --no-pager
+    ;;
+  status)
+    systemctl list-timers 'uni-sync-*' --no-pager
+    systemctl status 'uni-sync-wa@*' --no-pager -n 3 || true
+    ;;
+  *)
+    cd "$DIR" && exec "$DIR/.venv/bin/python" -m unisync "$@"
+    ;;
+esac

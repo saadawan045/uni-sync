@@ -1,0 +1,23 @@
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Node
+wa-bridge/node_modules/
+
+# Secrets and local config: never commit these
+config.toml
+*.json.key
+service-account*.json
+uni-sync-*.json
+.env
+wa-auth*/
+
+# Runtime data
+discover/
+*.db
+*.sqlite
+wa-context.json

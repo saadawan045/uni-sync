@@ -1,0 +1,76 @@
+# uni-sync configuration  →  ~/.config/uni-sync/config.toml   (chmod 600, it holds passwords)
+
+[general]
+timezone = "Asia/Karachi"
+data_dir = "~/.local/share/uni-sync"
+
+[portal]
+login_url = "https://nit.effii.app/portal/"
+username  = ""              # your registration number / portal login
+password  = ""
+# Leave empty to auto-find the "Time Table" link after login. If that fails,
+# run `uni-sync portal-discover`, open the timetable in links.txt and paste its URL here.
+timetable_url = ""
+weeks_ahead   = 3           # how far ahead to put classes on the calendar
+semester_end  = ""          # e.g. "2027-01-20" — stops adding classes after this date
+
+# Only needed if the auto-detected login fields are wrong (CSS selectors):
+[portal.selectors]
+# username = "input[name=regno]"
+# password = "input[name=password]"
+# submit   = "button[type=submit]"
+
+[google]
+service_account_file = "~/.config/uni-sync/service-account.json"
+calendar_id = ""            # Google Calendar → University calendar → Settings → "Calendar ID"
+
+[llm]
+ollama_url = "http://127.0.0.1:11434"
+model = "qwen2.5:3b"        # "qwen2.5:1.5b" is ~2x faster but makes more mistakes
+min_confidence = 0.6        # below this, events are emailed to you as "please check" instead of added
+detect_personal = true      # also hangouts, appointments, birthdays and things you promised to do
+filter = "loose"            # which messages the AI reads: "strict" (plan word + time), "loose" (anything
+                            # mentioning a time/day — default), "off" (every message; slowest)
+verify = false             # experimental second AI check on new events; tested worse with qwen2.5:3b (dropped real events)
+
+[mail]
+# Reading: your university Outlook auto-forwards to a Gmail account, which this reads over IMAP.
+imap_host = "imap.gmail.com"
+imap_port = 993
+imap_user = ""              # the Gmail address
+imap_password = ""          # a Gmail *App Password* (16 letters), not your normal password
+imap_folder = "INBOX"
+# Sending notifications (defaults to the same Gmail login):
+smtp_host = "smtp.gmail.com"
+smtp_port = 587
+notify_to = ""              # where updates/digests go (e.g. your university address)
+notify_changes = true       # email whenever something is added/moved/cancelled
+# Payment/OTP/shopping emails and newsletters are skipped — except from these domains, always checked:
+trusted_domains = ["nit.edu.pk", "instructure.com"]
+
+[canvas]
+# Fill in ONE of these. The token is better: it knows what you've already submitted.
+url      = ""               # your Canvas address, e.g. "https://nit.instructure.com" (needed with token)
+token    = ""               # Canvas → Account → Settings → "+ New access token"
+ical_url = ""               # or: Canvas → Calendar → "Calendar Feed" link (no token needed)
+# Undated Canvas items whose name contains any of these are gradebook columns, not work — skipped:
+ignore_undated = ["roll call", "attendance", "participation"]
+# Missed work Canvas still accepts (past due, not submitted, not locked) is shown on today until you
+# submit it. How far back to look, in days (0 = off). Needs the token.
+missed_days = 30
+
+# WeBWorK: one block per maths course. url = the course page you see after logging in
+# (ends in /webwork2/COURSE_NAME/). Repeat the whole [[webwork]] block for each course.
+# [[webwork]]
+# name     = "MATH-101"
+# url      = "https://webwork.example.edu/webwork2/MATH101_F26/"
+# username = ""
+# password = ""
+
+[whatsapp]
+# Empty = read every chat. Matching is by chat-name substring, case-insensitive.
+only_chats   = []           # e.g. ["BSCS", "NIT", "Section A"]
+ignore_chats = []           # e.g. ["Family", "Cricket"]
+my_names     = ["yourname"]   # a group plan you didn't reply to is only added if it names you
+context_hours = 12          # keep each chat's last few messages this long, so a plan and its reply/cancellation
+                            # minutes or hours apart are read together (0 = keep nothing)

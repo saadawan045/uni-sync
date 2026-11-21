@@ -1,0 +1,10 @@
+[Unit]
+Description=uni-sync: scan email (schedule)
+
+[Timer]
+OnActiveSec=2min
+OnBootSec=3min
+OnUnitInactiveSec=10min
+
+[Install]
+WantedBy=timers.target

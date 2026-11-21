@@ -1,0 +1,11 @@
+[Unit]
+Description=uni-sync: Canvas due dates (schedule)
+
+[Timer]
+OnActiveSec=3min
+OnBootSec=5min
+OnUnitInactiveSec=2h
+RandomizedDelaySec=5min
+
+[Install]
+WantedBy=timers.target

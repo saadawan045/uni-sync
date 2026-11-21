@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(~/.config/uni-sync/**)",
+      "Edit(~/.config/uni-sync/**)",
+      "Read(~/.local/share/uni-sync/**)",
+      "Edit(~/.local/share/uni-sync/**)",
+      "Read(./wa-bridge/node_modules/**)",
+      "Bash(cat ~/.config/uni-sync*)",
+      "Bash(cat ~/.local/share/uni-sync*)",
+      "Bash(sqlite3:*)",
+      "Bash(uni-sync wa-link:*)",
+      "Bash(uni-sync wa-unlink:*)"
+    ]
+  }
+}

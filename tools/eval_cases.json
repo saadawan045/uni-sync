@@ -1,0 +1,810 @@
+{
+ "_about": "Synthetic messages (no real chats) for scoring the AI. TODAY is fixed at Mon 2026-11-02 10:00. expect = events that must be added/changed; [] = must do nothing. optional = either outcome is fine. kind lists acceptable kinds.",
+ "now": "2026-11-02T10:00",
+ "cases": [
+  {
+   "id": "quiz-group",
+   "where": "WhatsApp · BSCS-3B Official",
+   "msgs": [
+    [
+     "CR Usman",
+     "Assalam o alaikum class, DSA quiz 2 will be held on Tuesday in the first lecture. Syllabus: linked lists and stacks"
+    ]
+   ],
+   "expect": [
+    {
+     "action": "add",
+     "kind": [
+      "quiz"
+     ],
+     "date": "2026-11-03"
+    }
+   ]
+  },
+  {
+   "id": "assignment-deadline",
+   "where": "WhatsApp · BSCS-3B Official",
+   "msgs": [
+    [
+     "CR Usman",
+     "OOP assignment 3 deadline is Friday 11:59pm, submit on Canvas"
+    ]
+   ],
+   "expect": [
+    {
+     "action": "add",
+     "kind": [
+      "assignment",
+      "deadline"
+     ],
+     "date": "2026-11-06",
+     "start": "23:59"
+    }
+   ]
+  },
+  {
+   "id": "cancel-urdu",
+   "where": "WhatsApp · BSCS-3B Official",
+   "msgs": [
+    [
+     "CR Usman",
+     "Kal ki Calculus class nahi hogi, sir ki tabiyat theek nahi"
+    ]
+   ],
+   "expect": [
+    {
+     "action": "cancel",
+     "kind": [
+      "class"
+     ],
+     "date": "2026-11-03"
+    }
+   ]
+  },
+  {
+   "id": "lab-shift",
+   "where": "WhatsApp · BSCS-3B Official",
+   "msgs": [
+    [
+     "CR Usman",
+     "Physics lab shifted from Wednesday to Thursday 2pm"
+    ]
+   ],
+   "expect": [
+    {
+     "action": "reschedule",
+     "kind": [
+      "class"
+     ],
+     "date": "2026-11-04",
+     "new_date": "2026-11-05",
+     "new_start": "14:00"
+    }
+   ]
+  },
+  {
+   "id": "midterms",
+   "where": "WhatsApp · BSCS-3B Official",
+   "msgs": [
+    [
+     "CR Usman",
+     "Midterms start next Monday, datesheet will be shared soon"
+    ]
+   ],
+   "expect": [
+    {
+     "action": "add",
+     "kind": [
+      "exam",
+      "event",
+      "deadline"
+     ],
+     "date": "2026-11-09"
+    }
+   ]
+  },
+  {
+   "id": "rso-reminder",
+   "where": "WhatsApp · NIT RSO 2025-26",
+   "msgs": [
+    [
+     "Hira",
+     "Reminder @all 5pm student centre"
+    ]
+   ],
+   "expect": [
+    {
+     "action": "add",
+     "kind": [
+      "meeting",
+      "event"
+     ],
+     "date": "2026-11-02",
+     "start": "17:00"
+    }
+   ]
+  },
+  {
+   "id": "viva-urdu",
+   "where": "WhatsApp · BSCS-3B Official",
+   "msgs": [
+    [
+     "CR Usman",
+     "Parson DLD ka viva hai 11 baje lab mein"
+    ]
+   ],
+   "expect": [
+    {
+     "action": "add",
+     "kind": [
+      "exam",
+      "presentation",
+      "quiz"
+     ],
+     "date": "2026-11-04",
+     "start": "11:00"
+    }
+   ]
+  },
+  {
+   "id": "makeup-class",
+   "where": "WhatsApp · BSCS-3B Official",
+   "msgs": [
+    [
+     "CR Usman",
+     "Makeup class of Linear Algebra on Saturday 9am room 204"
+    ]
+   ],
+   "expect": [
+    {
+     "action": "add",
+     "kind": [
+      "class"
+     ],
+     "date": "2026-11-07",
+     "start": "09:00"
+    }
+   ]
+  },
+  {
+   "id": "fee-deadline",
+   "where": "Email from accounts@nit.edu.pk",
+   "msgs": [
+    [
+     "NIT Accounts",
+     "Dear student, tomorrow is the last date for fee submission without late fine."
+    ]
+   ],
+   "expect": [
+    {
+     "action": "add",
+     "kind": [
+      "deadline"
+     ],
+     "date": "2026-11-03"
+    }
+   ]
+  },
+  {
+   "id": "class-moved-time",
+   "where": "WhatsApp · BSCS-3B Official",
+   "msgs": [
+    [
+     "CR Usman",
+     "Tomorrow's OOP class will be at 8:30 instead of 10, same room"
+    ]
+   ],
+   "expect": [
+    {
+     "action": "reschedule",
+     "kind": [
+      "class"
+     ],
+     "date": "2026-11-03",
+     "new_start": "08:30"
+    }
+   ]
+  },
+  {
+   "id": "reply-cancel",
+   "where": "WhatsApp · BSCS-3B Official",
+   "msgs": [
+    [
+     "CR Usman",
+     "[replying to: “OOP viva Thursday 2pm”]\nCancelled, sir will announce new date"
+    ]
+   ],
+   "expect": [
+    {
+     "action": "cancel",
+     "kind": [
+      "exam",
+      "presentation",
+      "quiz",
+      "class",
+      "event"
+     ],
+     "date": "2026-11-05"
+    }
+   ]
+  },
+  {
+   "id": "dinner-confirmed",
+   "where": "WhatsApp · Ali",
+   "msgs": [
+    [
+     "Ali",
+     "Kal raat dinner pe chalein? Savour 8 baje"
+    ],
+    [
+     "Me",
+     "Done pakka"
+    ]
+   ],
+   "expect": [
+    {
+     "action": "add",
+     "kind": [
+      "social"
+     ],
+     "date": "2026-11-03",
+     "start": "20:00"
+    }
+   ]
+  },
+  {
+   "id": "futsal-in",
+   "where": "WhatsApp · Futsal Boys",
+   "msgs": [
+    [
+     "Bilal",
+     "Futsal Saturday 6pm? Need 10 people"
+    ],
+    [
+     "Me",
+     "I'm in"
+    ]
+   ],
+   "expect": [
+    {
+     "action": "add",
+     "kind": [
+      "social"
+     ],
+     "date": "2026-11-07",
+     "start": "18:00"
+    }
+   ]
+  },
+  {
+   "id": "doctor",
+   "where": "WhatsApp · Shifa Clinic",
+   "msgs": [
+    [
+     "Shifa Clinic",
+     "Your appointment with Dr. Ahmed is confirmed for Thursday 4:30 PM"
+    ]
+   ],
+   "expect": [
+    {
+     "action": "add",
+     "kind": [
+      "appointment"
+     ],
+     "date": "2026-11-05",
+     "start": "16:30"
+    }
+   ]
+  },
+  {
+   "id": "uni-together",
+   "where": "WhatsApp · Jamal",
+   "msgs": [
+    [
+     "Me",
+     "kal 10 baje uni chalein?"
+    ],
+    [
+     "Jamal",
+     "haan done"
+    ]
+   ],
+   "expect": [
+    {
+     "action": "add",
+     "kind": [
+      "social",
+      "commitment",
+      "event"
+     ],
+     "date": "2026-11-03"
+    }
+   ]
+  },
+  {
+   "id": "promise-notes",
+   "where": "WhatsApp · Ali",
+   "optional": true,
+   "msgs": [
+    [
+     "Ali",
+     "bhai DSA notes bhej de"
+    ],
+    [
+     "Me",
+     "haan raat tak bhej dunga"
+    ]
+   ],
+   "expect": [
+    {
+     "action": "add",
+     "kind": [
+      "commitment"
+     ],
+     "date": "2026-11-02"
+    }
+   ]
+  },
+  {
+   "id": "seminar-question",
+   "where": "WhatsApp · BSCS-3B Official",
+   "optional": true,
+   "msgs": [
+    [
+     "Sara",
+     "Who's going to the AI seminar tomorrow at 11?"
+    ]
+   ],
+   "expect": [
+    {
+     "action": "add",
+     "kind": [
+      "event",
+      "meeting"
+     ],
+     "date": "2026-11-03"
+    }
+   ]
+  },
+  {
+   "id": "others-class",
+   "where": "WhatsApp · Hamza",
+   "msgs": [
+    [
+     "Hamza",
+     "Bro I have class at 3 tmr, can't come before that"
+    ]
+   ],
+   "expect": []
+  },
+  {
+   "id": "absence",
+   "where": "WhatsApp · BSCS-3B Official",
+   "msgs": [
+    [
+     "Fahad",
+     "Can't attend today's DSA class, family commitment. Please mark me"
+    ]
+   ],
+   "expect": []
+  },
+  {
+   "id": "payment",
+   "where": "Email from no-reply@jazzcash.com.pk",
+   "msgs": [
+    [
+     "JazzCash",
+     "Rs 1,500 received from Ali Raza on 02-Nov-2026 10:15. Your balance is Rs 3,240"
+    ]
+   ],
+   "expect": []
+  },
+  {
+   "id": "otp",
+   "where": "Email from alerts@meezanbank.com",
+   "msgs": [
+    [
+     "Meezan Bank",
+     "Your OTP for login is 4821. Valid for 5 minutes till 10:05. Do not share"
+    ]
+   ],
+   "expect": []
+  },
+  {
+   "id": "vague",
+   "where": "WhatsApp · Ali",
+   "msgs": [
+    [
+     "Ali",
+     "Yaar kabhi milte hain, bohat time ho gaya"
+    ]
+   ],
+   "expect": []
+  },
+  {
+   "id": "past-quiz",
+   "where": "WhatsApp · BSCS-3B Official",
+   "msgs": [
+    [
+     "Sara",
+     "Yesterday's quiz was so hard 😭"
+    ]
+   ],
+   "expect": []
+  },
+  {
+   "id": "bday-wish",
+   "where": "WhatsApp · Family",
+   "msgs": [
+    [
+     "Ammi",
+     "Happy birthday Hamza beta!! 🎉 Allah khush rakhe"
+    ]
+   ],
+   "expect": []
+  },
+  {
+   "id": "notes-question",
+   "where": "WhatsApp · BSCS-3B Official",
+   "msgs": [
+    [
+     "Zain",
+     "Anyone have notes of yesterday's lecture?"
+    ]
+   ],
+   "expect": []
+  },
+  {
+   "id": "others-plan",
+   "where": "WhatsApp · Cousins",
+   "msgs": [
+    [
+     "Ayesha",
+     "Ali and Sara are going to the movie tonight, so jealous"
+    ]
+   ],
+   "expect": []
+  },
+  {
+   "id": "ad-forward",
+   "where": "WhatsApp · Cousins",
+   "msgs": [
+    [
+     "Ayesha",
+     "Forwarded: 50% off at Khaadi this weekend only! Visit your nearest store"
+    ]
+   ],
+   "expect": []
+  },
+  {
+   "id": "vague-quiz",
+   "where": "WhatsApp · BSCS-3B Official",
+   "msgs": [
+    [
+     "Zain",
+     "lol sir ne kaha quiz hoga kabhi bhi, ready raho"
+    ]
+   ],
+   "expect": []
+  },
+  {
+   "id": "friend-exam",
+   "where": "WhatsApp · Hamza",
+   "msgs": [
+    [
+     "Hamza",
+     "Mera exam kal 10 baje hai, dua karna"
+    ]
+   ],
+   "expect": []
+  },
+  {
+   "id": "canteen",
+   "where": "WhatsApp · BSCS-3B Official",
+   "msgs": [
+    [
+     "Zain",
+     "guys aaj canteen ka samosa 😂😂 at 1 pm sab khatam"
+    ]
+   ],
+   "expect": []
+  },
+  {
+   "id": "suggestion-only",
+   "where": "WhatsApp · Futsal Boys",
+   "msgs": [
+    [
+     "Bilal",
+     "We should play cricket sometime next week"
+    ]
+   ],
+   "expect": []
+  },
+  {
+   "id": "delivery",
+   "where": "Email from orders@daraz.pk",
+   "msgs": [
+    [
+     "Daraz",
+     "Your order will be delivered tomorrow between 10am and 6pm"
+    ]
+   ],
+   "expect": []
+  },
+  {
+   "id": "h-presentation",
+   "where": "WhatsApp · BSCS-3B Official",
+   "msgs": [
+    [
+     "CR Usman",
+     "SE group presentations will be on Wednesday, 3rd period. Each group gets 10 min"
+    ]
+   ],
+   "expect": [
+    {
+     "action": "add",
+     "kind": [
+      "presentation",
+      "class",
+      "event"
+     ],
+     "date": "2026-11-04"
+    }
+   ],
+   "holdout": true
+  },
+  {
+   "id": "h-quiz-postponed",
+   "where": "WhatsApp · BSCS-3B Official",
+   "msgs": [
+    [
+     "CR Usman",
+     "Thursday wala Calculus quiz postpone ho gaya hai, next Monday hoga"
+    ]
+   ],
+   "expect": [
+    {
+     "action": "reschedule",
+     "kind": [
+      "quiz"
+     ],
+     "date": "2026-11-05",
+     "new_date": "2026-11-09"
+    }
+   ],
+   "holdout": true
+  },
+  {
+   "id": "h-registration",
+   "where": "Email from registrar@nit.edu.pk",
+   "msgs": [
+    [
+     "NIT Registrar",
+     "Course registration for Spring 2027 closes on 12th November. Late registration will not be entertained."
+    ]
+   ],
+   "expect": [
+    {
+     "action": "add",
+     "kind": [
+      "deadline"
+     ],
+     "date": "2026-11-12"
+    }
+   ],
+   "holdout": true
+  },
+  {
+   "id": "h-gym-confirmed",
+   "where": "WhatsApp · Hassan",
+   "msgs": [
+    [
+     "Hassan",
+     "gym chalein aaj shaam 6 baje?"
+    ],
+    [
+     "Me",
+     "haan chalo"
+    ]
+   ],
+   "expect": [
+    {
+     "action": "add",
+     "kind": [
+      "social"
+     ],
+     "date": "2026-11-02",
+     "start": "18:00"
+    }
+   ],
+   "holdout": true
+  },
+  {
+   "id": "h-class-off-today",
+   "where": "WhatsApp · BSCS-3B Official",
+   "msgs": [
+    [
+     "CR Usman",
+     "Aaj ki Discrete Math class off hai"
+    ]
+   ],
+   "expect": [
+    {
+     "action": "cancel",
+     "kind": [
+      "class"
+     ],
+     "date": "2026-11-02"
+    }
+   ],
+   "holdout": true
+  },
+  {
+   "id": "h-friend-late",
+   "where": "WhatsApp · Hamza",
+   "msgs": [
+    [
+     "Hamza",
+     "yaar main aaj late aaunga uni, traffic bohat hai"
+    ]
+   ],
+   "expect": [],
+   "holdout": true
+  },
+  {
+   "id": "h-meme",
+   "where": "WhatsApp · BSCS-3B Official",
+   "msgs": [
+    [
+     "Zain",
+     "When sir says quiz tomorrow but it's actually today 💀"
+    ]
+   ],
+   "expect": [],
+   "holdout": true
+  },
+  {
+   "id": "h-bank-statement",
+   "where": "Email from estatement@hbl.com",
+   "msgs": [
+    [
+     "HBL",
+     "Your e-statement for October 2026 is ready. Payment due date: 15 Nov 2026"
+    ]
+   ],
+   "expect": [],
+   "holdout": true
+  },
+  {
+   "id": "h-cousin-wedding",
+   "where": "WhatsApp · Family",
+   "msgs": [
+    [
+     "Ammi",
+     "Saad, Sana ki mehndi Saturday ko hai, sab ne 7 baje tak pohanchna hai"
+    ]
+   ],
+   "expect": [
+    {
+     "action": "add",
+     "kind": [
+      "social",
+      "event"
+     ],
+     "date": "2026-11-07",
+     "start": "19:00"
+    }
+   ],
+   "holdout": true
+  },
+  {
+   "id": "h-others-quiz",
+   "where": "WhatsApp · Ayesha",
+   "msgs": [
+    [
+     "Ayesha",
+     "Humara quiz kal hai, tumhara kab hai?"
+    ]
+   ],
+   "expect": [],
+   "holdout": true
+  },
+  {
+   "id": "fp-registration",
+   "where": "WhatsApp · NIT Sports Society",
+   "group": true,
+   "msgs": [
+    [
+     "Hira",
+     "Cricket gala registrations are open till Tuesday, fill the form"
+    ]
+   ],
+   "expect": [],
+   "holdout": true
+  },
+  {
+   "id": "fp-group-match",
+   "where": "WhatsApp · NIT Football",
+   "group": true,
+   "msgs": [
+    [
+     "Rayan",
+     "Match against Giki on Saturday at 4, come support"
+    ]
+   ],
+   "expect": [],
+   "holdout": true
+  },
+  {
+   "id": "fp-motivation",
+   "where": "WhatsApp · BSCS-3B Official",
+   "group": true,
+   "msgs": [
+    [
+     "Zain",
+     "Finals are near guys, lock in and stay healthy"
+    ]
+   ],
+   "expect": [],
+   "holdout": true
+  },
+  {
+   "id": "fp-no-day",
+   "where": "WhatsApp · Metal Music Club",
+   "group": true,
+   "msgs": [
+    [
+     "Sana",
+     "We should plan the metal music event, ideas please"
+    ]
+   ],
+   "expect": [],
+   "holdout": true
+  },
+  {
+   "id": "fp-no-time-kept-allday",
+   "where": "WhatsApp · BSCS-3B Official",
+   "group": true,
+   "msgs": [
+    [
+     "CR Usman",
+     "Ethics quiz on Friday"
+    ]
+   ],
+   "expect": [
+    {
+     "action": "add",
+     "kind": [
+      "quiz"
+     ],
+     "date": "2026-11-06",
+     "start": ""
+    }
+   ],
+   "holdout": true
+  },
+  {
+   "id": "fp-group-named",
+   "where": "WhatsApp · Family",
+   "group": true,
+   "msgs": [
+    [
+     "Ammi",
+     "Saad, dinner at khala's on Sunday 8 baje"
+    ]
+   ],
+   "expect": [
+    {
+     "action": "add",
+     "kind": [
+      "social",
+      "event"
+     ],
+     "date": "2026-11-08",
+     "start": "20:00"
+    }
+   ],
+   "holdout": true
+  }
+ ]
+}

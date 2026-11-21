@@ -1,0 +1,22 @@
+[Unit]
+Description=uni-sync WhatsApp bridge (receive-only)
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=@USER@
+Environment=HOME=@HOME@
+Environment=UNISYNC_DATA=@DATA@
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=full
+WorkingDirectory=@DIR@/wa-bridge
+ExecStart=/usr/bin/node index.mjs
+# exits cleanly (no restart) on logout/ban/conflict; restarts only on crashes
+Restart=on-failure
+RestartSec=120
+MemoryMax=500M
+
+[Install]
+WantedBy=multi-user.target

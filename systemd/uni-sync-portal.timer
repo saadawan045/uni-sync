@@ -1,0 +1,10 @@
+[Unit]
+Description=uni-sync: timetable sync (schedule)
+
+[Timer]
+OnCalendar=*-*-* 06,13,19:00:00 Asia/Karachi
+RandomizedDelaySec=20min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

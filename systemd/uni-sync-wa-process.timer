@@ -1,0 +1,10 @@
+[Unit]
+Description=uni-sync: process WhatsApp messages (schedule)
+
+[Timer]
+OnActiveSec=1min
+OnBootSec=2min
+OnUnitInactiveSec=5min
+
+[Install]
+WantedBy=timers.target

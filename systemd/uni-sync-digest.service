@@ -1,0 +1,17 @@
+[Unit]
+Description=uni-sync: morning digest
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=@USER@
+Environment=HOME=@HOME@
+Environment=UNISYNC_DATA=@DATA@
+WorkingDirectory=@DIR@
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=full
+ExecStart=@DIR@/.venv/bin/python -m unisync digest
+TimeoutStartSec=45min
+Nice=10

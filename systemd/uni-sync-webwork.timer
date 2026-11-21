@@ -1,0 +1,11 @@
+[Unit]
+Description=uni-sync: WeBWorK due dates (schedule)
+
+[Timer]
+OnActiveSec=4min
+OnBootSec=5min
+OnUnitInactiveSec=3h
+RandomizedDelaySec=5min
+
+[Install]
+WantedBy=timers.target

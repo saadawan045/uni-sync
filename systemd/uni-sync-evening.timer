@@ -1,0 +1,9 @@
+[Unit]
+Description=uni-sync: tomorrow preview (schedule)
+
+[Timer]
+OnCalendar=*-*-* 21:30:00 Asia/Karachi
+Persistent=false
+
+[Install]
+WantedBy=timers.target
