@@ -100,7 +100,7 @@ def _ollama_ok(model: str) -> str:
 
 def main() -> None:
     f = paths.config_file()
-    conf = tomllib.loads(f.read_text(encoding="utf-8")) if f.exists() else {}
+    conf = tomllib.loads(f.read_text(encoding="utf-8-sig")) if f.exists() else {}
     for k in ("portal", "google", "mail", "canvas", "whatsapp", "llm"):
         conf.setdefault(k, {})
     p, g, m, cv, wa = conf["portal"], conf["google"], conf["mail"], conf["canvas"], conf["whatsapp"]

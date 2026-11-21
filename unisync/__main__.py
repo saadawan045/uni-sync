@@ -3,7 +3,7 @@ import sys
 
 # Message text includes Urdu and emoji; Windows would otherwise read and write files as cp1252.
 if not sys.flags.utf8_mode:
-    args = [sys.executable, "-X", "utf8", "-m", "unisync", *sys.argv[1:]]
+    args = [sys.executable, "-P", "-X", "utf8", "-m", "unisync", *sys.argv[1:]]
     if os.name == "nt":  # execv on Windows returns to the shell early, which breaks interactive setup
         import subprocess
         try:

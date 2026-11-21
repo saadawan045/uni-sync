@@ -58,7 +58,7 @@ try { ollama pull $Model } catch { Write-Host "Couldn't download the model now. 
 Step "The uni-sync command"
 $bin = "$env:LOCALAPPDATA\uni-sync\bin"
 New-Item -ItemType Directory -Force $bin | Out-Null
-Set-Content -Encoding ASCII "$bin\uni-sync.cmd" "@echo off`r`nset PYTHONPATH=$Dir`r`n`"$vpy`" -X utf8 -m unisync %*"
+Set-Content -Encoding ASCII "$bin\uni-sync.cmd" "@echo off`r`nset PYTHONPATH=$Dir`r`n`"$vpy`" -P -X utf8 -m unisync %*"
 $userPath = [Environment]::GetEnvironmentVariable("Path", "User")
 if (-not ($userPath -split ";" | Where-Object { $_ -eq $bin })) {
   [Environment]::SetEnvironmentVariable("Path", ($userPath.TrimEnd(";") + ";" + $bin), "User")

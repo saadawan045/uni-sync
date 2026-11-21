@@ -80,7 +80,7 @@ def load() -> Config:
         os.chmod(CONFIG_PATH, 0o600)  # it holds passwords
 
     try:
-        raw = tomllib.loads(CONFIG_PATH.read_text(encoding="utf-8"))
+        raw = tomllib.loads(CONFIG_PATH.read_text(encoding="utf-8-sig"))  # -sig: Notepad may add a BOM
     except tomllib.TOMLDecodeError as e:
         sys.exit(f"Error in {CONFIG_PATH}: {e}\n"
                  "Common causes: a value without quotes, or text after a value that isn't a # comment.\n"
