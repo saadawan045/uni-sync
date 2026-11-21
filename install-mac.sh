@@ -33,7 +33,7 @@ mkdir -p "$HOME/.local/bin"
 cat > "$HOME/.local/bin/uni-sync" <<EOF
 #!/usr/bin/env bash
 export PYTHONPATH="$DIR"
-exec "$DIR/.venv/bin/python" -P -X utf8 -m unisync "$@"
+exec "$DIR/.venv/bin/python" -P -X utf8 -m unisync "\$@"
 EOF
 chmod +x "$HOME/.local/bin/uni-sync"
 case ":$PATH:" in *":$HOME/.local/bin:"*) ;; *) echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.zshrc"; export PATH="$HOME/.local/bin:$PATH";; esac
