@@ -13,7 +13,7 @@ import urllib.request
 from . import paths
 from .runner import ROOT
 
-PY = [sys.executable, "-X", "utf8", "-m", "unisync"]
+PY = [sys.executable, "-P", "-X", "utf8", "-m", "unisync"]
 
 
 def _ask(q: str, default: str = "", secret: bool = False, required: bool = False) -> str:
@@ -86,7 +86,17 @@ def _write(conf: dict) -> None:
 
 
 def _run(*args: str) -> bool:
-    return subprocess.run(PY + list(args), cwd=ROOT).returncode == 0
+    """Run a check and show its normal output; on failure show only the error line, not a traceback."""
+    r = subprocess.run(PY + list(args), cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace")
+    out = (r.stdout or "").rstrip()
+    if r.returncode == 0:
+        if out:
+            print("\n".join("  " + l for l in out.splitlines()[-25:]))
+        return True
+    err = [l for l in ((r.stderr or "") + "\n" + out).splitlines() if l.strip() and not l.startswith((" ", "Traceback", "Call log"))]
+    if err:
+        print("  Error: " + err[-1].strip()[:300])
+    return False
 
 
 def _ollama_ok(model: str) -> str:
