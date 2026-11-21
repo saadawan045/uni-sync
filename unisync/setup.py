@@ -95,7 +95,12 @@ def _run(*args: str) -> bool:
         return True
     err = [l for l in ((r.stderr or "") + "\n" + out).splitlines() if l.strip() and not l.startswith((" ", "Traceback", "Call log"))]
     if err:
-        print("  Error: " + err[-1].strip()[:300])
+        last = err[-1].strip()
+        if "Timeout" in last:
+            last = "the portal didn't respond in time, or its login page looked different from expected"
+        elif "Error:" in last:
+            last = last.split("Error:", 1)[1].strip() or last
+        print("  Error: " + last[:300])
     return False
 
 
