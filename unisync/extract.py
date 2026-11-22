@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import re
 from datetime import date, datetime, time, timedelta
+from types import SimpleNamespace
 
 from . import llm
 from .gcal import Ev, event_id, similarity
@@ -384,6 +385,7 @@ class Applier:
         self.cfg, self.cal, self.db, self.dry = cfg, cal, db, dry_run
         self.notes: list[str] = []
         self.maybe: list[str] = []
+        self.checks: list[dict] = []  # structured "please check" items for the phone app
 
     def apply(self, item: dict, source: str, where: str, snippet: str, sent: datetime | None = None) -> None:
         today = datetime.now(self.cfg.tz).date()
@@ -403,7 +405,18 @@ class Applier:
             return
         label = f"{title} — {d:%a %d %b}" + (f" {item.get('start')}" if item.get("start") else "")
         if conf < self.cfg.min_confidence:
-            self.maybe.append(f"❔ {label}  ({action}, {conf:.0%} sure) — {where}: “{snippet}”")
+            text = f"❔ {label}  ({action}, {conf:.0%} sure) — {where}: “{snippet}”"
+            self.maybe.append(text)
+            check = {"text": text}
+            if action == "add" and kind != "holiday":  # ready-made event, so the app's "Add it" matches what we'd add
+                from .gcal import Calendar
+                st, en = _span(self.cfg, d, item.get("start", ""), item.get("end", ""), kind)
+                ev = Ev(title=f"{EMOJI.get(kind, '')} {title}".strip(), start=st, end=en, source=source, kind=kind,
+                        location=item.get("location", ""),
+                        description=f"From {where}: “{snippet}” (added from the app)",
+                        id=event_id(source, title.lower(), d.isoformat(), item.get("start", "")))
+                check["event"] = Calendar._body(SimpleNamespace(tz=self.cfg.tz), ev)
+            self.checks.append(check)
             return
 
         if action == "add":

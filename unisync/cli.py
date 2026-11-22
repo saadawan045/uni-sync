@@ -51,11 +51,17 @@ def _cal(cfg):
     return Calendar(cfg)
 
 
-def _notify(cfg, title: str, notes: list[str], maybe: list[str] | None = None):
+def _notify(cfg, title: str, notes: list[str], maybe: list[str] | None = None, cal=None, checks=None):
     from . import mail
     maybe = maybe or []
     if not notes and not maybe:
         return
+    if cal is not None and hasattr(cal, "svc"):  # the phone app's Updates feed
+        from . import feed
+        checks = list(checks or [])
+        known = {c["text"] for c in checks}
+        checks += [{"text": m} for m in maybe if m not in known]
+        feed.record(cal, notes, checks)
     text = "\n".join(notes)
     if maybe:
         text += "\n\nNot added — please check:\n" + "\n".join(maybe)
@@ -125,7 +131,7 @@ def cmd_portal_sync(cfg, db, a):
         notes = portal.sync(cfg, None if a.dry_run else _cal(cfg), db, dry_run=a.dry_run)
         _ok(db, "Timetable sync")
         if notes and not a.dry_run:
-            _notify(cfg, "Your timetable changed", notes)
+            _notify(cfg, "Your timetable changed", notes, cal=_cal(cfg))
         print("Portal sync OK" + (f" — {len(notes)} change(s)" if notes else ""))
     except Exception as e:
         if a.dry_run:
@@ -150,7 +156,7 @@ def cmd_canvas_sync(cfg, db, a):
         notes = canvas.sync(cfg, None if a.dry_run else _cal(cfg), db, dry_run=a.dry_run)
         _ok(db, "Canvas sync")
         if notes and not a.dry_run:
-            _notify(cfg, "Canvas update", notes)
+            _notify(cfg, "Canvas update", notes, cal=_cal(cfg))
         print("Canvas sync OK" + (f" — {len(notes)} change(s)" if notes else ""))
     except Exception as e:
         if a.dry_run:
@@ -168,7 +174,7 @@ def cmd_webwork_sync(cfg, db, a):
         notes = webwork.sync(cfg, None if a.dry_run else _cal(cfg), db, dry_run=a.dry_run)
         _ok(db, "WeBWorK sync")
         if notes and not a.dry_run:
-            _notify(cfg, "WeBWorK update", notes)
+            _notify(cfg, "WeBWorK update", notes, cal=_cal(cfg))
         print("WeBWorK sync OK" + (f" — {len(notes)} change(s)" if notes else ""))
     except Exception as e:
         if a.dry_run:
@@ -305,7 +311,7 @@ def cmd_wa_process(cfg, db, a):
             _ok(db, "WhatsApp processing")
         except Exception as e:
             _fail(cfg, db, "WhatsApp processing", e)
-            _notify(cfg, "Schedule updated from WhatsApp", ap.notes, ap.maybe)
+            _notify(cfg, "Schedule updated from WhatsApp", ap.notes, ap.maybe, cal=ap.cal, checks=ap.checks)
             sys.exit(1)  # keep the work files and retry next run; event ids are deterministic so no duplicates
         if not a.dry_run:
             _save_context(cfg, hist)
@@ -317,13 +323,19 @@ def cmd_wa_process(cfg, db, a):
                 db.mark_seen("wa", i)
             for w in works:
                 w.unlink()  # message text is not kept anywhere after processing
-        _notify(cfg, "Schedule updated from WhatsApp", ap.notes, ap.maybe)
+        _notify(cfg, "Schedule updated from WhatsApp", ap.notes, ap.maybe, cal=ap.cal, checks=ap.checks)
         sent = sum(len([m for m in b if not m["context"]]) for bs in chats.values() for b in bs)
         print(f"{len(new_ids)} new message(s) from {len(by_chat)} chat(s); {sent} looked like plans → AI; "
               f"{len(ap.notes)} calendar change(s), {len(ap.maybe)} to check")
     else:
         print("no new WhatsApp messages since last check")
 
+    if not a.dry_run and (getattr(cfg, "calendar_id", "") or getattr(cfg, "google_auth", "") == "service_account"):
+        try:  # lets the phone app show "synced 5 min ago"
+            from . import feed
+            feed.touch(_cal(cfg))
+        except Exception:
+            pass
     _forward_alerts(cfg)
 
 
@@ -359,7 +371,7 @@ def cmd_mail_scan(cfg, db, a):
             sender = m["from"].split("<")[0].strip().strip('"') or m["from"]
             run_batch(cfg, ap, "email", f"Email from {sender}", [{"sender": sender, "time": m["time"], "text": text[:3000]}])
         _ok(db, "Email scan")
-        _notify(cfg, "Schedule updated from email", ap.notes, ap.maybe)
+        _notify(cfg, "Schedule updated from email", ap.notes, ap.maybe, cal=ap.cal, checks=ap.checks)
         print(f"Checked {len(msgs)} new email(s)")
     except Exception as e:
         _fail(cfg, db, "Email scan", e)
@@ -488,6 +500,19 @@ def cmd_google_login(cfg, db, a):
     print("✔ Signed in to Google. Calendar: University")
 
 
+APP_URL = "https://saadawan045.github.io/uni-sync/"
+
+
+def cmd_app_link(cfg, db, a):
+    from urllib.parse import quote
+    if not cfg.calendar_id:
+        sys.exit("Connect Google first: uni-sync google-login")
+    url = cfg.raw.get("app", {}).get("url", APP_URL).rstrip("/") + "/#cal=" + quote(cfg.calendar_id, safe="")
+    print("Open this on your phone (send it to yourself on WhatsApp), sign in with the same Google account,")
+    print("then use your browser's 'Add to Home screen':\n")
+    print("  " + url)
+
+
 def cmd_wa_link(cfg, db, a):
     from . import wa
     wa.link(cfg, a.name, a.phone or "")
@@ -508,7 +533,7 @@ def cmd_wa_update(cfg, db, a):
     wa.update()
 
 
-NO_LOCK = {"pause", "doctor", "run", "status", "logs", "autostart", "google-login",
+NO_LOCK = {"pause", "doctor", "run", "status", "logs", "autostart", "google-login", "app-link",
            "wa-link", "wa-unlink", "wa-list", "wa-update"}
 
 
@@ -522,6 +547,7 @@ def main():
     s = sub.add_parser("logs", help="recent log lines"); s.add_argument("job", nargs="?", help="e.g. portal-sync, wa-personal"); s.add_argument("-n", "--lines", type=int, default=60)
     s = sub.add_parser("autostart", help="start automatically at login: on / off / restart"); s.add_argument("action", choices=["on", "off", "restart"])
     sub.add_parser("google-login", help="sign in to Google again")
+    sub.add_parser("app-link", help="link that opens your schedule in the phone app")
     s = sub.add_parser("wa-link", help="link a WhatsApp number"); s.add_argument("name"); s.add_argument("phone", nargs="?")
     s = sub.add_parser("wa-unlink", help="remove a linked WhatsApp number"); s.add_argument("name")
     sub.add_parser("wa-list", help="linked WhatsApp numbers")

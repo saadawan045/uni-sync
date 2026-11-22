@@ -30,6 +30,15 @@ Then it turns on the background service, which starts when you log in. Add the *
 | `uni-sync logs` | what it's been doing (`uni-sync logs portal-sync` for one part) |
 | `uni-sync setup` | change any setting (your answers are kept) |
 | `uni-sync autostart off` / `on` | stop or start the background service |
+| `uni-sync app-link` | the link that opens your schedule in the phone app |
+
+### The phone app
+
+**[saadawan045.github.io/uni-sync](https://saadawan045.github.io/uni-sync/)**, or tap *Try it with sample data* to see it without signing in.
+
+Three screens: **Today** (what's next, with a countdown, and the day's timeline), **Due** (Canvas, WeBWorK and chat deadlines, including missed work Canvas still accepts) and **Updates** (every change uni-sync made, with the message it came from; anything it wasn't sure about waits there with *Add it* / *Ignore*).
+
+Run `uni-sync app-link` on your laptop, open the link on your phone, sign in with the same Google account, then **Add to Home screen**. The app talks to Google directly from your phone: there is no server in between, it only has access to the calendar uni-sync created, and it works when your laptop is off (showing what was last synced). Google Calendar itself still works too, if you prefer it.
 
 **What to expect on a laptop:** it syncs while the laptop is on. When you open it after it's been asleep or off, missed syncs run straight away (a morning summary that's hours late is skipped). WhatsApp messages queue up and are read when it's back. The local AI takes 20–40 s per message on a typical laptop, in the background.
 
@@ -270,6 +279,8 @@ unisync/setup.py    the setup wizard
 unisync/runner.py   laptop background scheduler (replaces systemd timers) + WhatsApp bridge supervisor
 unisync/autostart.py start at login (Windows Startup folder, macOS LaunchAgent, Linux user service)
 unisync/wa.py       wa-link / wa-unlink / wa-list
+unisync/feed.py     the Updates feed the phone app reads (stored on the calendar)
+docs/               the phone app (static, GitHub Pages)
 wa-bridge/index.mjs WhatsApp bridge (receive-only)
 systemd/            background services and timers
 ```
@@ -286,3 +297,11 @@ systemd/            background services and timers
 3. **Credentials → Create credentials → OAuth client ID → Desktop app**, then download the JSON and save it as `unisync/google-client.json`.
 
 For a desktop app Google treats this file as public (it can't be kept secret on users' machines), so it's fine to commit. Until the app passes Google's verification, students see an "unverified app" screen (Advanced → Go to uni-sync) and there's a cap of 100 users.
+
+## For the maintainer: phone app sign-in
+
+The phone app (`docs/`, served by GitHub Pages) needs a **Web application** OAuth client in the *same* Google Cloud project as the desktop client above, because Google only lets the app see calendars created by that project.
+
+1. **Credentials → Create credentials → OAuth client ID → Web application.** Under *Authorized JavaScript origins* add `https://saadawan045.github.io` (and `http://localhost` for testing).
+2. Put its client ID in `docs/config.js` (`clientId: '….apps.googleusercontent.com'`). Client IDs are public by design.
+3. **Settings → Pages** on GitHub: deploy from branch `main`, folder `/docs`.

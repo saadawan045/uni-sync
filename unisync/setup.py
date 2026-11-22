@@ -143,7 +143,7 @@ def main() -> None:
         try:
             g["calendar_id"] = google_login(cfg)
             _write(conf)
-            print("  ✔ Connected. Add the 'University' calendar to your phone's calendar app to see it there.")
+            print("  ✔ Connected. You'll get a link for the phone app at the end.")
         except SystemExit as e:  # no sign-in client bundled in this copy
             print(f"  ✘ {e}\n  Skipping Google for now; everything else can still be set up.")
         except Exception as e:
@@ -198,4 +198,7 @@ def main() -> None:
     print("\nAll set. Turning on the background service…")
     from . import autostart, config as config_mod
     autostart.on(config_mod.load())
-    print("\nUseful commands:  uni-sync status   ·   uni-sync logs   ·   uni-sync setup (change settings)")
+    if g.get("calendar_id"):
+        print("\nOn your phone:")
+        _run("app-link")
+    print("\nUseful commands:  uni-sync status   ·   uni-sync logs   ·   uni-sync app-link   ·   uni-sync setup (change settings)")
