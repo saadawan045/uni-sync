@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>uni-sync privacy policy</title>
+<link rel="stylesheet" href="app.css">
+<style>
+  .doc{max-width:680px;margin:0 auto;padding:32px 18px 60px;line-height:1.6;color:var(--text2)}
+  .doc h1{font-size:30px;color:var(--text)}
+  .doc h2{font-size:18px;color:var(--text);margin:28px 0 6px}
+  .doc p,.doc li{font-size:15px}
+</style>
+</head>
+<body>
+<main class="doc">
+  <h1>Privacy policy</h1>
+  <p>Last updated 22 November 2026</p>
+
+  <p>uni-sync is an open-source tool that puts a student's timetable, deadlines and class updates into a
+  Google Calendar. It runs on the student's own laptop, and the phone app runs in the student's own browser.
+  There is no uni-sync server, and the maintainer never receives your data.</p>
+
+  <h2>What uni-sync can access in your Google account</h2>
+  <p>uni-sync asks Google for one permission, <code>calendar.app.created</code>. With it, uni-sync can create a
+  calendar called "University" and read and change events in calendars it created. It cannot see your other
+  calendars, your email, your contacts or anything else in your Google account.</p>
+
+  <h2>Where your data goes</h2>
+  <ul>
+    <li><b>Laptop:</b> your sign-in token and settings stay in files on your own laptop.
+    uni-sync sends calendar changes straight to Google.</li>
+    <li><b>Phone app:</b> the app talks to Google directly from your browser. Your sign-in token and a copy of
+    your schedule (so it works offline) are kept in your browser's storage on that device.</li>
+    <li>uni-sync does not use analytics, ads or tracking, and does not sell or share any data.</li>
+    <li>Messages that uni-sync reads to find quizzes and deadlines are processed by an AI model running on your
+    own laptop and are not sent anywhere else.</li>
+  </ul>
+
+  <h2>Google user data</h2>
+  <p>uni-sync's use of information received from Google APIs follows the
+  <a href="https://developers.google.com/terms/api-services-user-data-policy">Google API Services User Data Policy</a>,
+  including the Limited Use requirements. Google data is used only to show and update your University calendar.</p>
+
+  <h2>Removing access</h2>
+  <p>Sign out in the phone app, or remove uni-sync at
+  <a href="https://myaccount.google.com/permissions">myaccount.google.com/permissions</a>. You can delete the
+  "University" calendar in Google Calendar at any time.</p>
+
+  <h2>Contact</h2>
+  <p>Questions: <a href="mailto:saadawan045@gmail.com">saadawan045@gmail.com</a> or
+  <a href="https://github.com/saadawan045/uni-sync/issues">open an issue on GitHub</a>.</p>
+</main>
+</body>
+</html>
