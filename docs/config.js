@@ -2,5 +2,5 @@
 // desktop client, so the app can see the calendar uni-sync created). See README → "Phone app".
 // A client ID is public by design; it only works from the origins allowed in Google Cloud.
 window.UNISYNC_CONFIG = {
-  clientId: '',
+  clientId: '338022442690-09hsiqjkj7p46o415q0r95p409rns74b.apps.googleusercontent.com',
 };
